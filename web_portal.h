@@ -8,11 +8,13 @@
 struct TimerDataStruct
 {
 
-    uint8_t HourOn[5];
-    uint8_t MinuteOn[5];
-    uint8_t HourOff[5];
-    uint8_t MinuteOff[5];
-    bool TimerOn[7];
+    uint8_t HourOn[10];
+    uint8_t MinuteOn[10];
+    uint8_t HourOff[10];
+    uint8_t MinuteOff[10];
+    bool TimerOn[10];
+    uint8_t GPIOPin[10];
+    bool activeHigh[10];
 };
 
 void start_server();

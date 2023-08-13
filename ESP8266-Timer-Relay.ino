@@ -18,11 +18,10 @@
 #include "ESP8266TimerInterrupt.h"
 #include "restore_factory_settings.h"
 #include "Structs.h"
+#include "common.h"
 
-#define timeZone 5.5
-
-#define TenSecs 10000000
-#define OneMin 60000000
+//#define TenSecs 10000000
+//#define OneMin 60000000
 #define TenMins 600000000
 #define TIMER_INTERVAL_MS 1000
 
@@ -31,17 +30,14 @@ ESP8266Timer ITimer;
 int timer;
 int alarmTriggerTime;
 struct CurrentTime Current;
-bool AlarmActive;
-struct TimerDataStruct TimerData;
+struct TimerDataStruct timerData;
 int WiFiTimer;
 char factory_settings_stored[3];
 bool OneSecoundPassed;
-int timerArray[1440][4] = {};
+//first index for which minut, 2nd for timer, so it says for which minut which timer is set
+int timerArray[1440][NO_OF_TIMERS] = {};
 bool WifiEnabled;
 bool lastRelayStatus;
-bool activeHigh;
-int relayArray[1440] = {};
-int relayPins[4] = {0, 2, 4, 5};
 
 void ICACHE_RAM_ATTR TimerHandler(void)
 {
@@ -50,22 +46,17 @@ void ICACHE_RAM_ATTR TimerHandler(void)
 
 void setup()
 {
-
   Serial.begin(115200);
   Serial.println("Booting");
   EEPROM.begin(512);
-  EEPROM_readAnything(150, factory_settings_stored);
+  EEPROM_readAnything(500, factory_settings_stored);
   if (memcmp(&factory_settings_stored, "YES", 3) != 0)
   {
     restore_factory_settings();
+    Serial.println("Something is currupt so restoring factory settings");
   }
   WiFi.mode(WIFI_STA);
   WiFiManager wm;
-
-  for (int j = 0; j < 4; j++)
-  {
-    pinMode(relayPins[j], OUTPUT); // Initialise the output for the relay
-  }
 
   wm.setConfigPortalTimeout(120); // auto close configportal after n seconds
 
@@ -88,22 +79,36 @@ void setup()
   {
     start_server();
     SetupOTA();
-    EEPROM_readAnything(100, TimerData);
+    EEPROM_readAnything(100, timerData);
     setup_time(timeZone);
-    int TimerOn[4];
-    int TimerOff[4];
-    for (int i = 0; i < 4; i++)
+
+    for (int j = 0; j < NO_OF_TIMERS; j++)
     {
-      if (TimerData.TimerOn[i])
+      pinMode(timerData.GPIOPin[j], OUTPUT); // Initialise the output for the relay
+    }
+
+    int TimerOn[NO_OF_TIMERS];  //when to start in minuts
+    int TimerOff[NO_OF_TIMERS]; //when to stop in minuts
+
+    Serial.println("=========== Reading Saved Data =============");
+    for (int i = 0; i < NO_OF_TIMERS; i++)
+    {
+      if (timerData.TimerOn[i])
       {
-        TimerOn[i] = TimerData.HourOn[i] * 60 + TimerData.MinuteOn[i];
-        TimerOff[i] = TimerData.HourOff[i] * 60 + TimerData.MinuteOff[i];
+        TimerOn[i] = timerData.HourOn[i] * 60 + timerData.MinuteOn[i];
+        TimerOff[i] = timerData.HourOff[i] * 60 + timerData.MinuteOff[i];
         Serial.print(" >> Relay PIN: ");
-        Serial.print(relayPins[i]);
+        Serial.println(timerData.GPIOPin[i]);
+        Serial.print(" >> Relay PinType Active High: ");
+        Serial.println(timerData.activeHigh[i]);
         Serial.print(" >> TimerOn ");
-        Serial.print(TimerOn[i]);
+        Serial.print(TimerOn[i]/60);
+        Serial.print(":");
+        Serial.println(TimerOn[i]%60);
         Serial.print(" >> Timer OFF ");
-        Serial.println(TimerOff[i]);
+        Serial.print(TimerOff[i]/60);
+        Serial.print(":");
+        Serial.println(TimerOff[i]%60);
       }
       else
       {
@@ -111,43 +116,28 @@ void setup()
         TimerOff[i] = 0;
 
         Serial.print(" >> Relay PIN: ");
-        Serial.print(relayPins[i]);
-        Serial.print(" >> TimerOn: 0 ");
+        Serial.println(timerData.GPIOPin[i]);
+        Serial.print(" >> Relay PinType Active High: ");
+        Serial.println(timerData.activeHigh[i]);
+        Serial.println(" >> TimerOn: 0 ");
         Serial.println(" >> Timer OFF: 0 ");
       }
     }
-    for (int i = 0; i <= 1440; i++)
+    Serial.println("=========== Done : Reading Saved Data =============");
+
+    for (int i = 0; i <= 1440; i++) // 1440 minuts per day as we have 24 hours, each with 60 mins so 24*60 = 1440
     {
-      for (int j = 0; j < 4; j++)
+      for (int j = 0; j < NO_OF_TIMERS; j++)
       {
         if (i >= TimerOn[j] && i < TimerOff[j])
         {
           timerArray[i][j] = 1;
-          Serial.print(" >> Relay PIN: ");
-          Serial.print(relayPins[i]);
-          Serial.print(" >> Timer Array ");
-          Serial.print(i);
-          Serial.print(" ");
-          Serial.print(j);
-          Serial.print(" ");
-          Serial.println(timerArray[i][j]);
         }
       }
     }
   }
   else
   {
-    //    for(int i=2; i<=22; i+=4)
-    //    {
-    //      for(int j=(i*60); j<=(i+2)*60; j++)
-    //      {
-    //        timerArray[j][0] = 1;
-    //        timerArray[j][1] = 1;
-    //        timerArray[j][2] = 1;
-    //        timerArray[j][3] = 1;
-    //      }
-    //    }
-
     Serial.println("Failed to enable WIFI");
   }
 
@@ -165,8 +155,6 @@ void setup()
   {
     Serial.println("Can't set ITimer correctly. Select another freq. or interval");
   }
-
-  activeHigh = false;
 }
 
 void loop()
@@ -200,22 +188,39 @@ void loop()
     OneSecoundPassed = false;
     int tempTime = (Current.Hour * 60) + Current.Minute;
 
-    for (int j = 0; j < 4; j++)
+    for (int j = 0; j < NO_OF_TIMERS; j++)
     {
+      //so for current minute does any timer set ?
       if (timerArray[tempTime][j] == 1)
       {
-        digitalWrite(relayPins[j], activeHigh ? HIGH : LOW); // Turn the relay on
+        digitalWrite(timerData.GPIOPin[j], timerData.activeHigh[j] ? HIGH : LOW); // Turn the relay on
         Serial.print(" >> RELAY: ");
-        Serial.print(relayPins[j]);
+        Serial.print(timerData.GPIOPin[j]);
         Serial.print(" ON. ");
         lastRelayStatus = true;
       }
       else
       {
-        digitalWrite(relayPins[j], activeHigh ? LOW : HIGH); // Turn the relay off
-        Serial.print(" >> RELAY: ");
-        Serial.print(relayPins[j]);
-        Serial.print(" OFF. ");
+        bool skipThisPin = false;
+        for (int k = 0; k < NO_OF_TIMERS; k++)
+        {
+          if (timerArray[tempTime][k] == 1 && (timerData.GPIOPin[k] == timerData.GPIOPin[j])){
+            skipThisPin = true;
+            break;
+          }
+        }
+
+        if(!skipThisPin){
+          digitalWrite(timerData.GPIOPin[j], timerData.activeHigh[j] ? LOW : HIGH); // Turn the relay off
+          Serial.print(" >> RELAY: ");
+          Serial.print(timerData.GPIOPin[j]);
+          Serial.print(" OFF. ");
+        }
+        else{
+          Serial.print(" >> RELAY: ");
+          Serial.print(timerData.GPIOPin[j]);
+          Serial.print(" Skipped. ");
+        }
         lastRelayStatus = false;
       }
     }

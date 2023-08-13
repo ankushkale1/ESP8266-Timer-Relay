@@ -3,6 +3,7 @@
 
 #include <EEPROM.h>
 #include "EEPROMAnything.h"
+#include "common.h"
 
 void restore_factory_settings()
 {
@@ -15,13 +16,15 @@ void restore_factory_settings()
 
   struct TimerDataStruct TimerSet;
 
-  for (int i = 0; i < 6; i++)
+  for (int i = 0; i < NO_OF_TIMERS; i++)
   {
     TimerSet.TimerOn[i] = true;
     TimerSet.HourOn[i] = (i * 4);
     TimerSet.MinuteOn[i] = 0;
     TimerSet.HourOff[i] = (i * 4) + 3;
     TimerSet.MinuteOff[i] = 0;
+    TimerSet.activeHigh[i] = false;
+    TimerSet.GPIOPin[i] = 0;
   }
 
   // TimerSet.HourOn[5] = '\0';
@@ -30,7 +33,7 @@ void restore_factory_settings()
 
   EEPROM_writeAnything(100, TimerSet);
 
-  EEPROM_writeAnything(150, "YES");
+  EEPROM_writeAnything(500, "YES");
 
   for (int i = 0; i < 512; i++)
   {
