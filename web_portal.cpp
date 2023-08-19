@@ -37,8 +37,8 @@ void handleRoot()
 {
   String timersHTML[NO_OF_TIMERS]; //actual html code for each timer
   String Page;
-  char tempOnTime[NO_OF_TIMERS][5];
-  char tempOffTime[NO_OF_TIMERS][5];
+  char tempOnTime[NO_OF_TIMERS][6];
+  char tempOffTime[NO_OF_TIMERS][6];
   struct TimerDataStruct timerSettings;
 
   EEPROM_readAnything(100, timerSettings);
@@ -62,8 +62,11 @@ void handleRoot()
     {
       sprintf(tempOnTime[i], "%d:%d", timerSettings.HourOn[i], timerSettings.MinuteOn[i]);
     }
+
+    Serial.print(">> Formattted ON Time: ");
+    Serial.println(tempOnTime[i]);
   }
-  tempOnTime[10][0] = '\0';
+  //tempOnTime[10][0] = '\0';
 
   for (int i = 0; i < NO_OF_TIMERS; i++)
   {
@@ -83,8 +86,11 @@ void handleRoot()
     {
       sprintf(tempOffTime[i], "%d:%d", timerSettings.HourOff[i], timerSettings.MinuteOff[i]);
     }
+
+    Serial.print(">> Formattted OFF Time: ");
+    Serial.println(tempOnTime[i]);
   }
-  tempOffTime[10][0] = '\0';
+  //tempOffTime[10][0] = '\0';
 //
 
   //prepare each timer html template with actual values
@@ -169,7 +175,7 @@ void handleRoot()
   }
 
   Page += F("</fieldset>"
-            "<form>"
+            "</form>"
             "<fieldset>"
             "<legend>Actions</legend>"
             "<div>"
@@ -263,6 +269,9 @@ void handleSet()
 
     Serial.println("=========== Done: Setting New values ===========");
   }
+
+  String html = "<html><head><meta http-equiv=\"refresh\" content=\"5\"></head><body>Success! Page will reload in 5 seconds.</body></html>";
+  server.send(200, "text/html", html);
 
   EEPROM_writeAnything(100, WebPortalTimerSet);
   ESP.restart();
