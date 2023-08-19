@@ -6,16 +6,32 @@ ESP8266WebServer server(80);
 struct CurrentTime Present;
 bool outputStatus;
 
-const char FIELDSET[] PROGMEM = "</fieldset><fieldset>";
-
 const char TIMERS[] PROGMEM = R"=====(
-                                          GPIO Pin : <input type="text" name="{Tmr}{index}GPIO" value='{TGPIO}'> <br/>
-                                          Relay Type: <input type="radio" name="{Tmr}{index}pinstate" value="on" {TPINSTATEON}> Active High
-                                          <input type="radio" name="{Tmr}{index}pinstate" value="off" {TPINSTATEOFF}> Active Low
-                                          <br/>
-                                          <input type="radio" name="{Tmr}{index}State" value="D" {CON}> ON
-                                          <input type="radio" name="{Tmr}{index}State" value="O" {COF}> OFF &nbsp &nbsp
-                                          <input type="time" name="{Tmr}{index}OnValue" id="{Tmr}{index}OnValue" value='{TON}' size=2 autofocus> until <input type="time" name="{Tmr}{index}OffValue" id="{Tmr}{index}OffValue" value='{TOF}' size=2 autofocus>
+                                          <div class="border p-3 mt-3">
+                                            <div class="mb-3">
+                                                <label class="form-label">Timer {index}</label>
+                                            </div>
+                                            <div class="mb-3">
+                                              <label for="{Tmr}{index}GPIO" class="form-label">GPIO Pin</label>
+                                              <input type="text" class="form-control" name="{Tmr}{index}GPIO" value='{TGPIO}' required>
+                                            </div>
+                                            <div class="mb-3">
+                                              <label for="{Tmr}{index}pinstate" class="form-label">Relay Type</label>
+                                              <input class="form-control" type="radio" name="{Tmr}{index}pinstate" value="on" {TPINSTATEON}> Active High
+                                              <input class="form-control" type="radio" name="{Tmr}{index}pinstate" value="off" {TPINSTATEOFF}> Active Low
+                                            </div>
+                                            <div class="mb-3">
+                                              <label for="{Tmr}{index}State" class="form-label">State</label>
+                                              <input class="form-control" type="radio" name="{Tmr}{index}State" value="D" {CON}> ON
+                                              <input class="form-control" type="radio" name="{Tmr}{index}State" value="O" {COF}> OFF
+                                            </div>
+                                            <div class="mb-3">
+                                              <label for="{Tmr}{index}OnValue" class="form-label">Timer</label>
+                                              <input type="time" name="{Tmr}{index}OnValue" id="{Tmr}{index}OnValue" value='{TON}' size=2 autofocus> 
+                                              <label for="{Tmr}{index}OffValue" class="form-label">Timer</label>
+                                              <input type="time" name="{Tmr}{index}OffValue" id="{Tmr}{index}OffValue" value='{TOF}' size=2 autofocus>
+                                            </div>
+                                          </div>
                               )=====";
 
 void start_server()
@@ -148,12 +164,16 @@ void handleRoot()
   Page = F("<!DOCTYPE html>"
            "<html lang=\"en\">"
            "<head>"
-           "<TITLE>Relay Timer Server</TITLE>"
-           "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+           "<title>Relay Timer Server</title>"
+           "<meta charset=\"utf-8\">"
+           "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+           "<link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css\">"
+           "<style>"
+           ".button{background-color:#DD4814;border:none;color:white;padding:10px 20px;text-align:center;text-decoration:none;display:inline-block;font-size:16px;border-radius:5px;cursor:pointer;width:100%;}.button:hover{background-color:#FF6F18;}"
+           "</style>"
            "</head>"
-           "<style> body { background-color: #fffff; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }</style>"
-           "<style> .button { background-color: #4CAF50; border: on; color: white; padding: 6px 25px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer;}</style>"
            "<body>"
+           "<div class=\"container mt-5\">"
            "<h1>Daily Repeat Timer Relay</h1>"
            "<h2>The time is ");
   
@@ -165,25 +185,22 @@ void handleRoot()
             "<h4>Do not create timers that pan over 2 days, for example [22:00]until[02:00]</h4>"
             "<h4>Create 2 different timers, [22:00]until[24:00] and [00:00]until[02:00]</h4>"
             "<form id=\"Timerform\">"
-            "<fieldset>");
+            "<div class=\"border p-3 mt-3\">");
 
   for(int i=0; i < NO_OF_TIMERS; i++){
-    Page += "<legend>Timer {index}</legend>";
-    Page.replace("{index}", String(i).c_str());
     Page += timersHTML[i];
-    Page += FPSTR(FIELDSET);
+    //Page.replace("{index}", String(i).c_str());
   }
 
-  Page += F("</fieldset>"
+  Page += F("</div>"
             "</form>"
-            "<fieldset>"
-            "<legend>Actions</legend>"
             "<div>"
-            "<br>"
-            "<input type=\"button\" name='Submit' value='Submit' id='submitButton'/>"
+            "<input type=\"button\" name='Submit' value='Submit' class='button' id='submitButton'/>"
             "</div>"
-            "</fieldset>"
-            "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js\"></script>"
+            "</div>"
+            "<script src=\"https://code.jquery.com/jquery-3.5.1.slim.min.js\"></script>"
+            "<script src=\"https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js\"></script>"
+            "<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js\"></script>"
             "<script>$('#submitButton').click(function() {"
             "var formData = $('#Timerform').serialize();"
             "$.post('/set', formData, function(response) {"
