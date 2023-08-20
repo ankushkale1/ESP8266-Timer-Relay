@@ -1,0 +1,11 @@
+{
+    "hourOn": [23,23,23,23,23,23,23,23,23,23],
+    "minuteOn": [23,23,23,23,23,23,23,23,23,23],
+    "hourOff": [23,23,23,23,23,23,23,23,23,23],
+    "minuteOff": [23,23,23,23,23,23,23,23,23,23],
+    "timerOn": [true,false,true,false,true,true,false,true,false,true],
+    "gpioPin": [1,2,3,4,5,11,22,33,44,55],
+    "activeHigh": [true,false,true,false,true,true,false,true,false,true],
+    "allOff": true,
+    "timezone": 5.5
+}

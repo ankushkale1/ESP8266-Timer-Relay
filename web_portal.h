@@ -4,18 +4,10 @@
 #include <ESP8266WebServer.h>
 #include "EEPROMAnything.h"
 #include "Structs.h"
-
-struct TimerDataStruct
-{
-
-    uint8_t HourOn[10];
-    uint8_t MinuteOn[10];
-    uint8_t HourOff[10];
-    uint8_t MinuteOff[10];
-    bool TimerOn[10];
-    uint8_t GPIOPin[10];
-    bool activeHigh[10];
-};
+#include "common.h"
+#include <ArduinoJson.h>
+#include "restore_factory_settings.h"
+#include <LittleFS.h>
 
 void start_server();
 
@@ -23,6 +15,14 @@ void handleRoot();
 
 void handle_client(struct CurrentTime, bool RelayStatus);
 
-void handleSet();
+void handleSave();
+
+void handleDetails();
+
+void handleReset();
+
+void handleAnyRequest();
+
+void handleUpload();
 
 #endif /* WEB_PORTAL_H */
