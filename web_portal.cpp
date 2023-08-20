@@ -113,9 +113,11 @@ void handleSave(){
 
   Serial.println("=========== Done Setting New values ===========");
 
+  sendingContent = true;
   server.sendHeader("Content-Type", "text/html");
   addCORSHeaders();
   server.send(200, "text/plain", "Success");
+  sendingContent = false;
 
   EEPROM_writeAnything(100, timerData);
   ESP.restart();
@@ -125,9 +127,11 @@ void handleReset(){
   restore_factory_settings();
   Serial.println("Something is currupt so restoring factory settings");
 
+  sendingContent = true;
   String html = "<html><head><meta http-equiv=\"refresh\" content=\"5\"></head><body>Success! page will reload in 5 seconds.</body></html>";
   addCORSHeaders();
   server.send(200, "text/html", html);
+  sendingContent = false;
 
   ESP.restart();
 }
@@ -162,6 +166,8 @@ void handleDetails()
   String jsonData;
   serializeJson(doc, jsonData);
 
+  sendingContent = true;
   addCORSHeaders();
   server.send(200, "application/json", jsonData);
+  sendingContent = false;
 }

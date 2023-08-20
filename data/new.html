@@ -9,6 +9,7 @@
     <!-- Include Bootstrap Toggle CSS -->
     <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
 
     <style>
       /* Loader container */
@@ -58,14 +59,14 @@
     </div>
     <div class="overlay"></div>
     <!-- Rest of your content -->
-    <div class="container-fluid mt-5">
+    <div class="container-fluid mt-5 ml-2 mr-2">
         <h1 class="text-center mb-4">Relay Control Panel</h1>
           <div class="text-left mt-4 mb-4 ml-2">   
             Switch Off Relays : &nbsp; <input type="checkbox" data-fieldName="allOff" class="relayconfig"> &nbsp; &nbsp;
             Timezone: &nbsp; <input type="number" data-fieldName="timezone" class="relayconfig" autocomplete value="">
             </div>    
           </div>
-          <div class="row" id="boxContainer">
+          <div class="row ml-2 mr-2" id="boxContainer">
               <!-- Cards -->
           </div>
           <div class="text-center mt-4 mb-4">
@@ -80,11 +81,13 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <!-- Include Bootstrap Toggle Script -->
     <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     
     <script>
         // Add your JavaScript code here for handling button clicks and sending data to server
         var pageData = {};
         var noOfRelays = 10;
+        var local = true;
 
         function showLoader() {
             $(".loader-container").fadeIn();
@@ -96,13 +99,27 @@
             $(".overlay").fadeOut();
         }
 
+        function showToastMessage(success, message){
+          toastr.options = {
+            "positionClass": "toast-top-right", // You can change the position of the toast
+            "closeButton": true,
+            "progressBar": true
+          };
+
+          if(success)
+            toastr.success(message, 'Success');
+          else
+            toastr.error(message, 'Failed');
+        }
+
         $(document).ready(function() {
             showLoader();
 
             $.ajax({
-              url: "/settings",
+              url: local ? "http://192.168.29.2/settings" : "/settings",
               method: "GET",
               success: function(data) {
+                  showToastMessage(true,"Successfully loaded Settings");
                   hideLoader();
                   pageData = data;
                   console.info('Got Settings: ',pageData);
@@ -111,6 +128,7 @@
                   pageData.allOff ? $('[data-fieldName="allOff"]').attr("checked", "checked") : $('[data-fieldName="allOff"]').removeAttr("checked");
               },
               error: function() {
+                  showToastMessage(false,"Failed to load Settings");
                   hideLoader();
               }
           });
@@ -119,16 +137,18 @@
           $('#apply-btn').click(() => {
             showLoader();
             $.ajax({
-              url: "/save",
+              url: local ? "http://192.168.29.2/save" : "/save",
               method: "POST",
               contentType: "application/json",
               data: JSON.stringify(pageData),
               success: function(data) {
                   console.info('Settings Saved');
+                  showToastMessage(true,"Settings Saved");
                   hideLoader();
               },
               error: function() {
                   console.info('Failed to Save Settings');
+                  showToastMessage(false,"Failed to Save Settings");
                   hideLoader();
               }
           });
@@ -138,14 +158,16 @@
           // Example: On "Reset" button click
           $('#reset-btn').click(() => {
             $.ajax({
-              url: "/reset",
+              url: local ? "http://192.168.29.2/reset" : "/reset",
               method: "GET",
               success: function(data) {
                   console.info('Reset Done');
+                  showToastMessage(true,"Reset Done");
                   hideLoader();
               },
               error: function() {
                   console.info('Failed to Reset');
+                  showToastMessage(false,"Failed to Reset");
                   hideLoader();
               }
           });
@@ -184,6 +206,9 @@
                     break;
 
                   case "offTime":
+                    if(pageData["hourOn"][index] > pageData["hourOff"][index]){
+                      pageData["hourOff"][index] = 23; //offtime can't go beyond current day
+                    }
                     pageData["hourOff"][index] = parseInt(inputField.value.split(":")[0]);
                     pageData["minuteOff"][index] = parseInt(inputField.value.split(":")[1]);
                     break;
