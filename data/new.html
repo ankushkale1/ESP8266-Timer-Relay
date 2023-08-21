@@ -63,15 +63,16 @@
         <h1 class="text-center mb-4">Relay Control Panel</h1>
           <div class="text-left mt-4 mb-4 ml-2">   
             Switch Off Relays : &nbsp; <input type="checkbox" data-fieldName="allOff" class="relayconfig"> &nbsp; &nbsp;
-            Timezone: &nbsp; <input type="number" data-fieldName="timezone" class="relayconfig" autocomplete value="">
+            Timezone: &nbsp; <input type="number" data-fieldName="timezone" class="relayconfig" autocomplete value=""> &nbsp; &nbsp;
+            Hostname: &nbsp; <input type="text" data-fieldName="hostname" class="relayconfig" autocomplete value="">
             </div>    
           </div>
           <div class="row ml-2 mr-2" id="boxContainer">
               <!-- Cards -->
           </div>
           <div class="text-center mt-4 mb-4">
-              <button class="btn btn-success fas fa-check" id="apply-btn" style="width: 78%;"> Apply</button>
-              <button class="btn btn-danger ml-2 fas fa-undo" id="reset-btn" style="width: 20%;"> Reset</button>
+              <button class="btn btn-success fas fa-check mb-4 mr-1" id="apply-btn" style="width: 78%;"> Apply</button>
+              <button class="btn btn-danger ml-2 fas fa-undo mb-4" id="reset-btn" style="width: 20%;"> Reset</button>
           </div>
     </div>
 
@@ -87,7 +88,8 @@
         // Add your JavaScript code here for handling button clicks and sending data to server
         var pageData = {};
         var noOfRelays = 10;
-        var local = true;
+        var local = false;
+        var localip = "192.168.29.30";
 
         function showLoader() {
             $(".loader-container").fadeIn();
@@ -116,7 +118,7 @@
             showLoader();
 
             $.ajax({
-              url: local ? "http://192.168.29.2/settings" : "/settings",
+              url: local ? "http://"+localip+"/settings" : "/settings",
               method: "GET",
               success: function(data) {
                   showToastMessage(true,"Successfully loaded Settings");
@@ -125,6 +127,7 @@
                   console.info('Got Settings: ',pageData);
                   populateBoxes();
                   $('[data-fieldName="timezone"]').val(pageData.timezone);
+                  $('[data-fieldName="hostname"]').val(pageData.hostname);
                   pageData.allOff ? $('[data-fieldName="allOff"]').attr("checked", "checked") : $('[data-fieldName="allOff"]').removeAttr("checked");
               },
               error: function() {
@@ -137,7 +140,7 @@
           $('#apply-btn').click(() => {
             showLoader();
             $.ajax({
-              url: local ? "http://192.168.29.2/save" : "/save",
+              url: local ? "http://"+localip+"/save" : "/save",
               method: "POST",
               contentType: "application/json",
               data: JSON.stringify(pageData),
@@ -158,7 +161,7 @@
           // Example: On "Reset" button click
           $('#reset-btn').click(() => {
             $.ajax({
-              url: local ? "http://192.168.29.2/reset" : "/reset",
+              url: local ? "http://"+localip+"/reset" : "/reset",
               method: "GET",
               success: function(data) {
                   console.info('Reset Done');
@@ -190,6 +193,10 @@
                   case "timezone":
                     pageData[fieldName] = parseFloat(inputField.value);
                     break;
+
+                  case "hostname":
+                    pageData[fieldName] = inputField.value;   
+                    break; 
 
                   case "timerOn":
                   case "activeHigh":  

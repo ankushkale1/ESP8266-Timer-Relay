@@ -18,6 +18,7 @@ struct TimerDataStruct
     bool activeHigh[NO_OF_TIMERS];
     bool allOff;
     float timezone;
+    char hostname[10];
 };
 
 #endif 

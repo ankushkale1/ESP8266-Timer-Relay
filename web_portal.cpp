@@ -110,6 +110,7 @@ void handleSave(){
 
   timerData.allOff = jsonDocument["allOff"];
   timerData.timezone = jsonDocument["timezone"];
+  strcpy(timerData.hostname,jsonDocument["hostname"]);
 
   Serial.println("=========== Done Setting New values ===========");
 
@@ -162,6 +163,7 @@ void handleDetails()
 
   doc["allOff"] = timerSettings.allOff;
   doc["timezone"] = timerSettings.timezone;  
+  doc["hostname"] = timerSettings.hostname;
 
   String jsonData;
   serializeJson(doc, jsonData);

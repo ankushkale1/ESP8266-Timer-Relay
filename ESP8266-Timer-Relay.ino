@@ -18,6 +18,7 @@
 #include "ESP8266TimerInterrupt.h"
 #include "Structs.h"
 #include <LittleFS.h>
+#include <ESP8266mDNS.h>
 
 //#define TenSecs 10000000
 //#define OneMin 60000000
@@ -181,6 +182,13 @@ void setup()
   if (!LittleFS.begin()) {
       Serial.println("Failed to mount LittleFS");
       return;
+  }
+
+  if (!MDNS.begin(timerSettings.hostname)) {
+    Serial.println("Error setting up MDNS responder!");
+    while (1) {
+      delay(1000);
+    }
   }
 }
 

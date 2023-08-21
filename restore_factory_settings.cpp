@@ -24,6 +24,7 @@ void restore_factory_settings()
 
   timerSettings.allOff = false;
   timerSettings.timezone = 5.5;
+  strcpy(timerSettings.hostname, "relay");
 
   EEPROM_writeAnything(100, timerSettings);
 
