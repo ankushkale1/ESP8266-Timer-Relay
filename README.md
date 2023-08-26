@@ -5,10 +5,10 @@ and RAM ( as which relay to be on / off is pre-populated at start of ESP8266 for
 To increase number of timers change number in common.h file.
 
 Features:
-mDNS support
-Timezone support
-Supports multiple relays with individual active low / high configuration
-Multiple timers per relay, i.e for each realy you can specify multipe on, off timings
+1) mDNS support
+2) Timezone support
+3) Supports multiple relays with individual active low / high configuration
+4) Multiple timers per relay, i.e for each realy you can specify multipe on, off timings
 
 
 Steps after you flash this code:
