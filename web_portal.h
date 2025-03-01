@@ -25,4 +25,8 @@ void handleAnyRequest();
 
 void handleUpload();
 
+void goToSleep();
+
+bool getIsSleeping();
+
 #endif /* WEB_PORTAL_H */

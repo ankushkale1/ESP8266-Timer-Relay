@@ -3,7 +3,7 @@
 void restore_factory_settings()
 {
 
-  for (int i = 0; i < 512; i++)
+  for (int i = 0; i < EEPROM_SIZE; i++)
   {
     EEPROM.write(i, NULL);
   }
@@ -16,8 +16,10 @@ void restore_factory_settings()
     timerSettings.timerOn[i] = true;
     timerSettings.hourOn[i] = (i * 4);
     timerSettings.minuteOn[i] = 0;
+    timerSettings.secondOn[i] = 0;
     timerSettings.hourOff[i] = (i * 4) + 3;
     timerSettings.minuteOff[i] = 0;
+    timerSettings.secondOff[i] = 0;
     timerSettings.activeHigh[i] = false;
     timerSettings.gpioPin[i] = 0;
   }
@@ -26,14 +28,15 @@ void restore_factory_settings()
   timerSettings.timezone = 5.5;
   strcpy(timerSettings.hostname, "relay");
 
-  EEPROM_writeAnything(100, timerSettings);
+  EEPROM_writeAnything(SETTINGS_LOCATION, timerSettings);
 
-  EEPROM_writeAnything(500, "YES");
+  EEPROM_writeAnything(OK_LOCATION, "YES");
 
-  for (int i = 0; i < 512; i++)
+  //Serial.print("Raw Data written in EEPROM: ");
+  for (int i = 0; i < 1024; i++)
   {
     char temp = EEPROM.read(i);
-    Serial.print(temp);
+    Serial.println(temp);
   }
 
   Serial.println("");

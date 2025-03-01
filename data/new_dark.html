@@ -8,17 +8,24 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Include Bootstrap Toggle CSS -->
     <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Include Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <!-- Include Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+    <!-- Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+      <!-- Tempus Dominus JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.7.7/dist/js/tempus-dominus.min.js"></script>
+    <!-- Tempus Dominus CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.7.7/dist/css/tempus-dominus.min.css">
 </head>
 <body class="bg-gray-900 text-white">
     <!-- Loader and Overlay -->
     <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" id="loader">
         <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
     </div>
-
     <!-- Main Content -->
     <div class="container mx-auto p-4">
         <h1 class="text-3xl font-bold text-center mb-6">Relay Control Panel</h1>
@@ -35,12 +42,10 @@
                 Hostname: <input type="text" data-fieldName="hostname" class="relayconfig ml-2 bg-gray-700 text-white p-1 rounded" autocomplete>
             </label>
         </div>
-
         <!-- Relay Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="boxContainer">
             <!-- Cards will be populated here -->
         </div>
-
         <!-- Action Buttons -->
         <div class="text-center mt-6">
             <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2" id="apply-btn">
@@ -51,43 +56,35 @@
             </button>
         </div>
     </div>
-
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
     <!-- Include Bootstrap Toggle Script -->
     <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
     <!-- Include Toastr Script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-
     <script>
         // Add your JavaScript code here for handling button clicks and sending data to server
         var pageData = {};
         var noOfRelays = 10;
         var local = false;
         var localip = "192.168.29.30";
-
         function showLoader() {
             $("#loader").fadeIn();
         }
-
         function hideLoader() {
             $("#loader").fadeOut();
         }
-
         function showToastMessage(success, message) {
             toastr.options = {
                 positionClass: "toast-top-right",
                 closeButton: true,
                 progressBar: true
             };
-
             if (success) toastr.success(message, 'Success');
             else toastr.error(message, 'Failed');
         }
-
         $(document).ready(function () {
             showLoader();
-
             $.ajax({
                 url: local ? "http://" + localip + "/settings" : "/settings",
                 method: "GET",
@@ -106,7 +103,6 @@
                     hideLoader();
                 }
             });
-
             // Apply Button Click
             $('#apply-btn').click(() => {
                 showLoader();
@@ -127,7 +123,6 @@
                     }
                 });
             });
-
             // Reset Button Click
             $('#reset-btn').click(() => {
                 $.ajax({
@@ -146,57 +141,53 @@
                 });
             });
         });
-
-        function watchChanges() {
-            $(".relayconfig").on("change", function () {
-                var index = $(this).data("index");
-                var fieldName = $(this).data("fieldName");
-
-                switch (fieldName) {
-                    case "gpioPin":
-                        pageData[fieldName][index] = parseInt($(this).val());
-                        break;
-
-                    case "timezone":
-                        pageData[fieldName] = parseFloat($(this).val());
-                        break;
-
-                    case "hostname":
-                        pageData[fieldName] = $(this).val();
-                        break;
-
-                    case "timerOn":
-                    case "activeHigh":
-                        pageData[fieldName][index] = $(this).prop("checked");
-                        break;
-
-                    case "allOff":
-                        pageData[fieldName] = $(this).prop("checked");
-                        break;
-
-                    case "onTime":
-                        pageData["hourOn"][index] = parseInt($(this).val().split(":")[0]);
-                        pageData["minuteOn"][index] = parseInt($(this).val().split(":")[1]);
-                        pageData["secondOn"][index] = parseInt($(this).val().split(":")[2]);
-                        break;
-
-                    case "offTime":
-                        if (pageData["hourOn"][index] > pageData["hourOff"][index]) {
-                            pageData["hourOff"][index] = 23; // offtime can't go beyond current day
-                        }
-                        pageData["hourOff"][index] = parseInt($(this).val().split(":")[0]);
-                        pageData["minuteOff"][index] = parseInt($(this).val().split(":")[1]);
-                        pageData["secondOff"][index] = parseInt($(this).val().split(":")[2]);
-                        break;
+        
+        function watchChanges(){
+        var inputFields = document.querySelectorAll(".relayconfig");
+        inputFields.forEach((inputField) => {
+            inputField.addEventListener("change", () => {
+                var index = parseInt(inputField.getAttribute("data-index"));
+                var fieldName = inputField.getAttribute("data-fieldName");
+                switch(fieldName){
+                  case "gpioPin":
+                    pageData[fieldName][index] = parseInt(inputField.value);
+                    break;
+                  case "timezone":
+                    pageData[fieldName] = parseFloat(inputField.value);
+                    break;
+                  case "hostname":
+                    pageData[fieldName] = inputField.value;   
+                    break; 
+                  case "timerOn":
+                  case "activeHigh":  
+                    pageData[fieldName][index] = inputField.checked;
+                    break;       
+                    
+                  case "allOff":
+                    pageData[fieldName] = inputField.checked;
+                    break; 
+                  case "onTime":
+                    pageData["hourOn"][index] = parseInt(inputField.value.split(":")[0]);
+                    pageData["minuteOn"][index] = parseInt(inputField.value.split(":")[1]);
+                    pageData["secondOn"][index] = parseInt(inputField.value.split(":")[2]);
+                    break;
+                  case "offTime":
+                    if(pageData["hourOn"][index] > pageData["hourOff"][index]){
+                      pageData["hourOff"][index] = 23; //offtime can't go beyond current day
+                    }
+                    pageData["hourOff"][index] = parseInt(inputField.value.split(":")[0]);
+                    pageData["minuteOff"][index] = parseInt(inputField.value.split(":")[1]);
+                    pageData["secondOff"][index] = parseInt(inputField.value.split(":")[2]);
+                    break;
                 }
-                console.log("Array:", pageData);
+                  console.log("Array:", pageData);
             });
-        }
+        });
+      }
 
         function populateBoxes() {
             const boxContainer = $('#boxContainer');
             boxContainer.empty();
-
             for (let i = 0; i < noOfRelays; i++) {
                 const boxHtml = `
                     <div class="bg-gray-800 p-4 rounded-lg shadow-lg">
@@ -204,7 +195,7 @@
                         <div class="space-y-4">
                             <div>
                                 <label class="block">GPIO Pin:</label>
-                                <input type="number" data-index="${i}" data-fieldName="gpioPin" class="w-full bg-gray-700 text-white p-2 rounded" value="${pageData.gpioPin[i]}">
+                                <input type="number" data-index="${i}" data-fieldName="gpioPin" class="relayconfig w-full bg-gray-700 text-white p-2 rounded" value="${pageData.gpioPin[i]}">
                             </div>
                             <div>
                                 <label class="block">On:</label>
@@ -216,19 +207,33 @@
                             </div>
                             <div>
                                 <label class="block">On Time:</label>
-                                <input type="time" data-index="${i}" data-fieldName="onTime" class="w-full bg-gray-700 text-white p-2 rounded" value="${pageData.hourOn[i].toString().padStart(2, '0')}:${pageData.minuteOn[i].toString().padStart(2, '0')}:${pageData.secondOn[i].toString().padStart(2, '0')}">
+                                <input type="text" step="1" data-index="${i}" data-fieldName="onTime" class="timePicker relayconfig w-full bg-gray-700 text-white p-2 rounded" value="${pageData.hourOn[i].toString().padStart(2, '0')}:${pageData.minuteOn[i].toString().padStart(2, '0')}:${pageData.secondOn[i].toString().padStart(2, '0')}">
                             </div>
                             <div>
                                 <label class="block">Off Time:</label>
-                                <input type="time" data-index="${i}" data-fieldName="offTime" class="w-full bg-gray-700 text-white p-2 rounded" value="${pageData.hourOff[i].toString().padStart(2, '0')}:${pageData.minuteOff[i].toString().padStart(2, '0')}:${pageData.secondOff[i].toString().padStart(2, '0')}">
+                                <input type="text" step="1" data-index="${i}" data-fieldName="offTime" class="timePicker relayconfig w-full bg-gray-700 text-white p-2 rounded" value="${pageData.hourOff[i].toString().padStart(2, '0')}:${pageData.minuteOff[i].toString().padStart(2, '0')}:${pageData.secondOff[i].toString().padStart(2, '0')}">
                             </div>
                         </div>
                     </div>
                 `;
                 boxContainer.append(boxHtml);
             }
-
             watchChanges();
+            
+            document.querySelectorAll('.timePicker').forEach(element => {
+                new tempusDominus.TempusDominus(element, {
+                    display: {
+                        components: {
+                            hours: true,
+                            minutes: true,
+                            seconds: true, // Enable seconds selection
+                        },
+                    },
+                    localization: {
+                        format: 'HH:mm:ss', // Display format with seconds
+                    },
+                });
+            });
         }
     </script>
 </body>

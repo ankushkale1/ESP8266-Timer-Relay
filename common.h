@@ -13,6 +13,8 @@ struct TimerDataStruct
     uint8_t minuteOn[NO_OF_TIMERS];
     uint8_t hourOff[NO_OF_TIMERS];
     uint8_t minuteOff[NO_OF_TIMERS];
+    uint8_t secondOn[NO_OF_TIMERS];
+    uint8_t secondOff[NO_OF_TIMERS];
     bool timerOn[NO_OF_TIMERS];
     uint8_t gpioPin[NO_OF_TIMERS];
     bool activeHigh[NO_OF_TIMERS];

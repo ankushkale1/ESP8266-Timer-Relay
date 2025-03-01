@@ -1,93 +1,90 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relay Control Panel</title>
     <!-- Include Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <!-- Include Bootstrap Toggle CSS -->
-    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
-    <!-- Include Font Awesome -->
+    <!-- Include Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <!-- Include Toastr CSS -->
+    <!-- Include Toastr for Notifications -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+    <style>
+        /* Custom Loader Animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body class="bg-gray-900 text-white">
-    <!-- Loader and Overlay -->
-    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" id="loader">
+    <!-- Loader -->
+    <div id="loader" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
         <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
     </div>
-
     <!-- Main Content -->
     <div class="container mx-auto p-4">
         <h1 class="text-3xl font-bold text-center mb-6">Relay Control Panel</h1>
-        
         <!-- Global Controls -->
-        <div class="mb-6">
-            <label class="mr-4">
-                Switch Off Relays: <input type="checkbox" data-fieldName="allOff" class="relayconfig ml-2">
-            </label>
-            <label class="mr-4">
-                Timezone: <input type="number" data-fieldName="timezone" class="relayconfig ml-2 bg-gray-700 text-white p-1 rounded" autocomplete>
-            </label>
-            <label>
-                Hostname: <input type="text" data-fieldName="hostname" class="relayconfig ml-2 bg-gray-700 text-white p-1 rounded" autocomplete>
-            </label>
+        <div class="mb-6 space-y-4">
+            <div class="flex items-center space-x-4">
+                <span>Switch Off Relays:</span>
+                <input type="checkbox" data-fieldName="allOff" class="relayconfig toggle toggle-accent">
+            </div>
+            <div class="flex items-center space-x-4">
+                <span>Timezone:</span>
+                <input type="number" data-fieldName="timezone" class="relayconfig input input-bordered w-24 text-black" autocomplete>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span>Hostname:</span>
+                <input type="text" data-fieldName="hostname" class="relayconfig input input-bordered w-48 text-black" autocomplete>
+            </div>
         </div>
-
         <!-- Relay Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="boxContainer">
-            <!-- Cards will be populated here -->
+            <!-- Cards will be dynamically populated here -->
         </div>
-
         <!-- Action Buttons -->
-        <div class="text-center mt-6">
-            <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2" id="apply-btn">
-                <i class="fas fa-check"></i> Apply
+        <div class="mt-6 flex justify-center space-x-4">
+            <button id="apply-btn" class="btn btn-success bg-green-500 text-white p-4 rounded-lg">
+                <i class="fas fa-check mr-2"></i> Apply
             </button>
-            <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" id="reset-btn">
-                <i class="fas fa-undo"></i> Reset
+            <button id="reset-btn" class="btn btn-danger bg-red-500 text-white p-4 rounded-lg">
+                <i class="fas fa-undo mr-2"></i> Reset
             </button>
         </div>
     </div>
-
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
-    <!-- Include Bootstrap Toggle Script -->
-    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
-    <!-- Include Toastr Script -->
+    <!-- Include Toastr -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-
     <script>
-        // Add your JavaScript code here for handling button clicks and sending data to server
+        // Configuration
         var pageData = {};
         var noOfRelays = 10;
         var local = false;
         var localip = "192.168.29.30";
-
+        // Show/Hide Loader
         function showLoader() {
-            $("#loader").fadeIn();
+            $('#loader').removeClass('hidden');
         }
-
         function hideLoader() {
-            $("#loader").fadeOut();
+            $('#loader').addClass('hidden');
         }
-
+        // Show Toast Messages
         function showToastMessage(success, message) {
             toastr.options = {
                 positionClass: "toast-top-right",
                 closeButton: true,
                 progressBar: true
             };
-
             if (success) toastr.success(message, 'Success');
             else toastr.error(message, 'Failed');
         }
-
+        // Fetch Settings on Page Load
         $(document).ready(function () {
             showLoader();
-
             $.ajax({
                 url: local ? "http://" + localip + "/settings" : "/settings",
                 method: "GET",
@@ -106,128 +103,115 @@
                     hideLoader();
                 }
             });
-
-            // Apply Button Click
-            $('#apply-btn').click(() => {
-                showLoader();
-                $.ajax({
-                    url: local ? "http://" + localip + "/save" : "/save",
-                    method: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify(pageData),
-                    success: function (data) {
-                        console.info('Settings Saved');
-                        showToastMessage(true, "Settings Saved");
-                        hideLoader();
-                    },
-                    error: function () {
-                        console.info('Failed to Save Settings');
-                        showToastMessage(false, "Failed to Save Settings");
-                        hideLoader();
-                    }
-                });
-            });
-
-            // Reset Button Click
-            $('#reset-btn').click(() => {
-                $.ajax({
-                    url: local ? "http://" + localip + "/reset" : "/reset",
-                    method: "GET",
-                    success: function (data) {
-                        console.info('Reset Done');
-                        showToastMessage(true, "Reset Done");
-                        hideLoader();
-                    },
-                    error: function () {
-                        console.info('Failed to Reset');
-                        showToastMessage(false, "Failed to Reset");
-                        hideLoader();
-                    }
-                });
+        });
+        // Apply Button Click
+        $('#apply-btn').click(() => {
+            showLoader();
+            $.ajax({
+                url: local ? "http://" + localip + "/save" : "/save",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(pageData),
+                success: function (data) {
+                    console.info('Settings Saved');
+                    showToastMessage(true, "Settings Saved");
+                    hideLoader();
+                },
+                error: function () {
+                    console.info('Failed to Save Settings');
+                    showToastMessage(false, "Failed to Save Settings");
+                    hideLoader();
+                }
             });
         });
-
+        // Reset Button Click
+        $('#reset-btn').click(() => {
+            $.ajax({
+                url: local ? "http://" + localip + "/reset" : "/reset",
+                method: "GET",
+                success: function (data) {
+                    console.info('Reset Done');
+                    showToastMessage(true, "Reset Done");
+                    hideLoader();
+                },
+                error: function () {
+                    console.info('Failed to Reset');
+                    showToastMessage(false, "Failed to Reset");
+                    hideLoader();
+                }
+            });
+        });
+        // Watch for Changes in Input Fields
         function watchChanges() {
             $(".relayconfig").on("change", function () {
                 var index = $(this).data("index");
                 var fieldName = $(this).data("fieldName");
-
                 switch (fieldName) {
                     case "gpioPin":
                         pageData[fieldName][index] = parseInt($(this).val());
                         break;
-
                     case "timezone":
                         pageData[fieldName] = parseFloat($(this).val());
                         break;
-
                     case "hostname":
                         pageData[fieldName] = $(this).val();
                         break;
-
                     case "timerOn":
                     case "activeHigh":
                         pageData[fieldName][index] = $(this).prop("checked");
                         break;
-
                     case "allOff":
                         pageData[fieldName] = $(this).prop("checked");
                         break;
-
                     case "onTime":
                         pageData["hourOn"][index] = parseInt($(this).val().split(":")[0]);
                         pageData["minuteOn"][index] = parseInt($(this).val().split(":")[1]);
-                        pageData["secondOn"][index] = parseInt($(this).val().split(":")[2]);
                         break;
-
                     case "offTime":
                         if (pageData["hourOn"][index] > pageData["hourOff"][index]) {
                             pageData["hourOff"][index] = 23; // offtime can't go beyond current day
                         }
                         pageData["hourOff"][index] = parseInt($(this).val().split(":")[0]);
                         pageData["minuteOff"][index] = parseInt($(this).val().split(":")[1]);
-                        pageData["secondOff"][index] = parseInt($(this).val().split(":")[2]);
                         break;
                 }
                 console.log("Array:", pageData);
             });
         }
-
+        // Populate Relay Cards
         function populateBoxes() {
             const boxContainer = $('#boxContainer');
             boxContainer.empty();
-
             for (let i = 0; i < noOfRelays; i++) {
                 const boxHtml = `
-                    <div class="bg-gray-800 p-4 rounded-lg shadow-lg">
+                    <div class="card bg-gray-800 p-4 rounded-lg shadow-lg">
                         <h5 class="text-xl font-bold mb-4">Timer ${i + 1}</h5>
                         <div class="space-y-4">
                             <div>
                                 <label class="block">GPIO Pin:</label>
-                                <input type="number" data-index="${i}" data-fieldName="gpioPin" class="w-full bg-gray-700 text-white p-2 rounded" value="${pageData.gpioPin[i]}">
+                                <input type="number" data-index="${i}" data-fieldName="gpioPin" class="relayconfig input input-bordered w-full text-black" value="${pageData.gpioPin[i]}">
                             </div>
                             <div>
                                 <label class="block">On:</label>
-                                <input type="checkbox" data-index="${i}" data-fieldName="timerOn" class="relayconfig" data-toggle="toggle" ${pageData.timerOn[i] ? 'checked' : ''}>
+                                <input type="checkbox" data-index="${i}" data-fieldName="timerOn" class="relayconfig toggle toggle-accent" ${pageData.timerOn[i] ? 'checked' : ''}>
                             </div>
                             <div>
                                 <label class="block">Active High:</label>
-                                <input type="checkbox" data-index="${i}" data-fieldName="activeHigh" class="relayconfig" data-toggle="toggle" ${pageData.activeHigh[i] ? 'checked' : ''}>
+                                <input type="checkbox" data-index="${i}" data-fieldName="activeHigh" class="relayconfig toggle toggle-accent" ${pageData.activeHigh[i] ? 'checked' : ''}>
                             </div>
                             <div>
                                 <label class="block">On Time:</label>
-                                <input type="time" data-index="${i}" data-fieldName="onTime" class="w-full bg-gray-700 text-white p-2 rounded" value="${pageData.hourOn[i].toString().padStart(2, '0')}:${pageData.minuteOn[i].toString().padStart(2, '0')}:${pageData.secondOn[i].toString().padStart(2, '0')}">
+                                <input type="time" data-index="${i}" data-fieldName="onTime" class="relayconfig input input-bordered w-full text-black" value="${pageData.hourOn[i].toString().padStart(2, '0')}:${pageData.minuteOn[i].toString().padStart(2, '0')}">
                             </div>
                             <div>
                                 <label class="block">Off Time:</label>
-                                <input type="time" data-index="${i}" data-fieldName="offTime" class="w-full bg-gray-700 text-white p-2 rounded" value="${pageData.hourOff[i].toString().padStart(2, '0')}:${pageData.minuteOff[i].toString().padStart(2, '0')}:${pageData.secondOff[i].toString().padStart(2, '0')}">
+                                <input type="time" data-index="${i}" data-fieldName="offTime" class="relayconfig input input-bordered w-full text-black" value="${pageData.hourOff[i].toString().padStart(2, '0')}:${pageData.minuteOff[i].toString().padStart(2, '0')}">
                             </div>
                         </div>
                     </div>
                 `;
                 boxContainer.append(boxHtml);
             }
-
             watchChanges();
         }
     </script>
