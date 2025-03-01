@@ -75,6 +75,7 @@ void setup()
     restore_factory_settings();
     Serial.println("WARNING !!! Something is corrupt so restoring factory settings");
   }
+  WiFi.hostname("ESP_PLANT");
   WiFi.mode(WIFI_STA);
   WiFiManager wm;
 
@@ -143,7 +144,7 @@ void setup()
     }
   }
 
-  goToSleep();  // Start in sleep mode
+  //goToSleep();  // Start in sleep mode
 }
 
 void loop()
@@ -217,10 +218,10 @@ void loop()
       }
     }
 
-    if (!getIsSleeping()) {
-        Serial.println("🌙 Going back to sleep...");
-        goToSleep(); // Put back to sleep after handling request
-    }
+    // if (!getIsSleeping()) {
+    //     Serial.println("🌙 Going back to sleep...");
+    //     goToSleep(); // Put back to sleep after handling request
+    // }
   }
 }
 

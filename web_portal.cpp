@@ -60,20 +60,20 @@ void addCORSHeaders() {
   server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
-void goToSleep() {
-    Serial.println("😴 Entering Modem Sleep...");
-    isSleeping = true;
-    wifi_set_sleep_type(MODEM_SLEEP_T);
-}
+// void goToSleep() {
+//     Serial.println("😴 Entering Modem Sleep...");
+//     isSleeping = true;
+//     wifi_set_sleep_type(MODEM_SLEEP_T);
+// }
 
-bool getIsSleeping() {
-  return isSleeping;
-}
+// bool getIsSleeping() {
+//   return isSleeping;
+// }
 
 void handleRoot() {
 
-  Serial.println("⏰ Wake-up: Received HTTP request");
-  isSleeping = false; // Mark that the ESP is awake
+  // Serial.println("⏰ Wake-up: Received HTTP request");
+  // isSleeping = false; // Mark that the ESP is awake
 
   sendingContent = true;
   addCORSHeaders();
